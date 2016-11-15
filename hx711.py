@@ -1,26 +1,27 @@
 import RPi.GPIO as GPIO
 import time
 import sys
-import numpy  # sudo apt-get python-numpy
+import numpy as np  # sudo apt-get python-np
 
 class HX711:
     def __init__(self, dout, pd_sck, gain=128):
         self.PD_SCK = pd_sck
         self.DOUT = dout
 
+        GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.PD_SCK, GPIO.OUT)
         GPIO.setup(self.DOUT, GPIO.IN)
 
         self.GAIN = 0
         self.REFERENCE_UNIT = 1  # The value returned by the hx711 that corresponds to your reference unit AFTER dividing by the SCALE.
-        
+
         self.OFFSET = 1
         self.lastVal = 0
 
         self.LSByte = [2, -1, -1]
         self.MSByte = [0, 3, 1]
-        
+
         self.MSBit = [0, 8, 1]
         self.LSBit = [7, -1, -1]
 
@@ -44,7 +45,7 @@ class HX711:
 
         GPIO.output(self.PD_SCK, False)
         self.read()
-    
+
     def createBoolList(self, size=8):
         ret = []
         for i in range(8):
@@ -64,7 +65,7 @@ class HX711:
                 GPIO.output(self.PD_SCK, True)
                 dataBits[j][i] = GPIO.input(self.DOUT)
                 GPIO.output(self.PD_SCK, False)
-            dataBytes[j] = numpy.packbits(numpy.uint8(dataBits[j]))
+            dataBytes[j] = np.packbits(np.uint8(dataBits[j]))
 
         #set channel and gain factor for next reading
         for i in range(self.GAIN):
@@ -98,12 +99,12 @@ class HX711:
                 comma = ""
             np_arr8_string += str(np_arr8[i]) + comma
         np_arr8_string += "]";
-        
+
         return np_arr8_string
 
     def read_np_arr8(self):
         dataBytes = self.read()
-        np_arr8 = numpy.uint8(dataBytes)
+        np_arr8 = np.uint8(dataBytes)
 
         return np_arr8
 
@@ -115,22 +116,28 @@ class HX711:
         return self.lastVal
 
     def read_average(self, times=3):
-        values = 0
-        for i in range(times):
-            values += self.read_long()
+        return np.average([self.read_long() for _ in range(times)])
 
-        return values / times
+    def read_average_without_bias(self, times=3):
+        values = sorted([self.read_long() for _ in range(times)])
+
+        return np.average(values[1:-1])
 
     def get_value(self, times=3):
-        return self.read_average(times) - self.OFFSET
+        return self.read_average_without_bias(times) - self.OFFSET
 
     def get_weight(self, times=3):
         value = self.get_value(times)
         value = value / self.REFERENCE_UNIT
         return value
 
+    def get_avg_weight(self, times=3):
+        value = self.get_value(times)
+        value = value / self.REFERENCE_UNIT
+        return value
+
     def tare(self, times=15):
-       
+
         # Backup REFERENCE_UNIT value
         reference_unit = self.REFERENCE_UNIT
         self.set_reference_unit(1)
