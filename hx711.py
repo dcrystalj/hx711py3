@@ -112,40 +112,45 @@ class HX711:
         np_arr8 = self.read_np_arr8()
         np_arr32 = np_arr8.view('uint32')
         self.lastVal = np_arr32
+        time.sleep(0.2)
 
         return self.lastVal
 
-    def read_average(self, times=3):
+    def read_average(self, times=10):
         return np.average([self.read_long() for _ in range(times)])
 
-    def read_average_without_bias(self, times=3):
+    def read_average_without_bias(self, times=10, spikes=3):
         values = sorted([self.read_long() for _ in range(times)])
 
-        return np.average(values[1:-1])
+        return np.average(values[spikes:-spikes])
 
-    def get_value(self, times=3):
-        return self.read_average_without_bias(times) - self.OFFSET
+    def get_value(self, times=10):
+        return self.read_average(times) - self.OFFSET
 
-    def get_weight(self, times=3):
+    def get_avg_value(self, times=20, spikes=3):
+        return self.read_average_without_bias(times, spikes) - self.OFFSET
+
+    def get_weight(self, times=10):
         value = self.get_value(times)
-        value = value / self.REFERENCE_UNIT
+        value /= self.REFERENCE_UNIT
         return value
 
-    def get_avg_weight(self, times=3):
-        value = self.get_value(times)
-        value = value / self.REFERENCE_UNIT
+    def get_avg_weight(self, times=20, spikes=3):
+        value = self.get_avg_value(times, spikes)
+        value /= self.REFERENCE_UNIT
         return value
 
-    def tare(self, times=15):
+    def tare(self, times=25):
 
         # Backup REFERENCE_UNIT value
         reference_unit = self.REFERENCE_UNIT
         self.set_reference_unit(1)
 
-        value = self.read_average(times)
+        value = self.read_average_without_bias(times)
         self.set_offset(value)
 
         self.set_reference_unit(reference_unit)
+        time.sleep(1)
 
     def set_reading_format(self, byte_format="LSB", bit_format="MSB"):
         if byte_format == "LSB":

@@ -30,6 +30,7 @@ hx.set_reference_unit(21)
 
 hx.reset()
 hx.tare()
+time.sleep(1)
 
 while True:
     try:
@@ -41,11 +42,11 @@ while True:
         #print binary_string + " " + np_arr8_string
 
         # Prints the weight. Comment if you're debbuging the MSB and LSB issue.
-        val = hx.get_avg_weight(5)
+        val = hx.get_avg_weight(30, 5)
         print(val)
-
-        hx.power_down()
-        hx.power_up()
-        time.sleep(1)
+        # 
+        # hx.power_down()
+        # hx.power_up()
+        time.sleep(10)
     except (KeyboardInterrupt, SystemExit):
         cleanAndExit()
