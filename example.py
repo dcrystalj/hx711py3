@@ -9,7 +9,7 @@ def cleanAndExit():
     print("Bye!")
     sys.exit()
 
-hx = HX711(27, 17)
+hx = HX711(5, 6)
 
 # HOW TO CALCULATE THE REFFERENCE UNIT
 # To set the reference unit to 1. Put 1kg on your sensor or anything you have and know exactly how much it weights.
