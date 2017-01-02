@@ -1,6 +1,5 @@
 import RPi.GPIO as GPIO
 import time
-import numpy as np  # sudo apt-get python-np
 
 class HX711:
     def __init__(self, dout, pd_sck, gain=128, bitsToRead=24):
@@ -63,28 +62,11 @@ class HX711:
         
         return self.correctTwosComplement( unsignedValue )
 
+    def get_value(self):
+        return self.read() - self.OFFSET
 
-    def read_average(self, times=10):
-        return np.average([self.read() for _ in range(times)])
-
-    def read_average_without_bias(self, times=10, spikes=3):
-        values = sorted([self.read() for _ in range(times)])
-
-        return np.average(values[spikes:-spikes])
-
-    def get_value(self, times=10):
-        return self.read_average(times) - self.OFFSET
-
-    def get_avg_value(self, times=20, spikes=3):
-        return self.read_average_without_bias(times, spikes) - self.OFFSET
-
-    def get_weight(self, times=10):
-        value = self.get_value(times)
-        value /= self.REFERENCE_UNIT
-        return value
-
-    def get_avg_weight(self, times=20, spikes=3):
-        value = self.get_avg_value(times, spikes)
+    def get_weight(self):
+        value = self.get_value()
         value /= self.REFERENCE_UNIT
         return value
 
@@ -93,8 +75,10 @@ class HX711:
         reference_unit = self.REFERENCE_UNIT
         self.set_reference_unit(1)
 
-        value = self.read_average_without_bias(times)
-        self.set_offset(value)
+        value = 0
+        for i in range(times):
+          value += self.read()
+        self.set_offset(value/times)
 
         self.set_reference_unit(reference_unit)
         time.sleep(0.1)
@@ -120,3 +104,43 @@ class HX711:
     def reset(self):
         self.power_down()
         self.power_up()
+
+class RollingSpikeRemoval:
+    def __init__(self, source, samples=10, spikes=2):
+        self.source = source
+        self.samples = samples
+        self.spikes = spikes
+        self.history = [];
+
+    def get_weight(self):
+        value = self.source.get_weight()
+        self.history.append( value )
+        if ( len(self.history) > self.samples ):
+            self.history = self.history[1:]
+        average = sum( self.history ) / len(self.history)
+        deltas = sorted( map( lambda value: abs(value - average) , self.history ) )
+        if ( len(deltas) < self.spikes ):
+          maxPermittedDelta = deltas[-1]
+        else:
+          maxPermittedDelta = deltas[-self.spikes]
+        validValues = sorted(filter( lambda value: abs(value-average) <= maxPermittedDelta , self.history ))
+        average = sum(validValues)/len(validValues)
+        return average
+
+    def tare(self, times=25):
+        self.source.tare(times)
+
+    def set_offset(self, offset):
+        self.source.set_offset(offset)
+
+    def set_reference_unit(self, reference_unit):
+        self.source.set_reference_unit( reference_unit)
+
+    def power_down(self):
+        self.source.power_down()
+
+    def power_up(self):
+        self.source.power_up()
+
+    def reset(self):
+        self.source.reset()
