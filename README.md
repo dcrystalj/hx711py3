@@ -1,7 +1,17 @@
+### Instructions
+We recommend you to use ```Scale``` lib which removes spikes from measurements (```spikless_example.py```).
+However if you need raw data take a look at ```HX711``` lib (```example.py```).
 
 
-### Info
+#### Requirements
+python >= 3.4
+
+#### wiring example
+![wiring_example.png](wiring_example.png)
+
+
 ----
+### Info
 Quick code credited to Philip Whitfield  "https://github.com/underdoeg/".
 I've only made a few modifications on the way the captured bits are processed.
 
@@ -11,13 +21,4 @@ There is an improved version of underdoeg's one here: "https://gist.github.com/i
 
 This project was ported from https://github.com/tatobari/hx711py to work with python3 and added functions for my needs
 
-
-### Instructions
-
-Check example.py to see how it works.
-
 ------------
-
-
-#### wiring for example
-![wiring_example.png](wiring_example.png)
