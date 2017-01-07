@@ -24,13 +24,13 @@ class HX711:
         self.bitsToRead = bitsToRead
         self.twosComplementThreshold = 1 << (bitsToRead-1)
         self.twosComplementOffset = -(1 << (bitsToRead))
-        self.set_gain(gain)
+        self.setGain(gain)
         self.read()
 
-    def is_ready(self):
+    def isReady(self):
         return GPIO.input(self.DOUT) == 0
 
-    def set_gain(self, gain):
+    def setGain(self, gain):
         if gain is 128:
             self.GAIN = 1
         elif gain is 64:
@@ -42,7 +42,7 @@ class HX711:
         self.read()
 
     def waitForReady(self):
-        while not self.is_ready():
+        while not self.isReady():
             pass
 
     def correctTwosComplement(self, unsignedValue):
@@ -69,31 +69,31 @@ class HX711:
 
         return self.correctTwosComplement(unsignedValue)
 
-    def get_value(self):
+    def getValue(self):
         return self.read() - self.OFFSET
 
-    def get_weight(self):
-        value = self.get_value()
+    def getWeight(self):
+        value = self.getValue()
         value /= self.REFERENCE_UNIT
         return value
 
     def tare(self, times=25):
         reference_unit = self.REFERENCE_UNIT
-        self.set_reference_unit(1)
+        self.setReferenceUnit(1)
 
         # remove spikes
         cut = times//5
         values = sorted([self.read() for i in range(times)])[cut:-cut]
         offset = statistics.mean(values)
 
-        self.set_offset(offset)
+        self.setOffset(offset)
 
-        self.set_reference_unit(reference_unit)
+        self.setReferenceUnit(reference_unit)
 
-    def set_offset(self, offset):
+    def setOffset(self, offset):
         self.OFFSET = offset
 
-    def set_reference_unit(self, reference_unit):
+    def setReferenceUnit(self, reference_unit):
         self.REFERENCE_UNIT = reference_unit
 
     # HX711 datasheet states that setting the PDA_CLOCK pin on high
@@ -101,15 +101,15 @@ class HX711:
     # I used 100 microseconds, just in case.
     # I've found it is good practice to reset the hx711 if it wasn't used
     # for more than a few seconds.
-    def power_down(self):
+    def powerDown(self):
         GPIO.output(self.PD_SCK, False)
         GPIO.output(self.PD_SCK, True)
         time.sleep(0.0001)
 
-    def power_up(self):
+    def powerUp(self):
         GPIO.output(self.PD_SCK, False)
         time.sleep(0.0001)
 
     def reset(self):
-        self.power_down()
-        self.power_up()
+        self.powerDown()
+        self.powerUp()

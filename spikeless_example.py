@@ -5,7 +5,7 @@ from scale import Scale
 
 scale = Scale()
 
-scale.set_reference_unit(21)
+scale.setReferenceUnit(21)
 
 scale.reset()
 scale.tare()
@@ -13,9 +13,7 @@ scale.tare()
 while True:
 
     try:
-
-        val = scale.get_weight()
-
+        val = scale.getMeasure()
         print("{0: 4.4f}".format(val))
 
     except (KeyboardInterrupt, SystemExit):

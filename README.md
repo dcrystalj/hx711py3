@@ -1,5 +1,5 @@
 ### Instructions
-We recommend you to use ```Scale``` lib which removes spikes from measurements (```spikless_example.py```).
+We recommend you to use ```Scale``` lib which removes spikes from measurements (```spikeless_example.py```).
 However if you need raw data take a look at ```HX711``` lib (```example.py```).
 
 

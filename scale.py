@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 import statistics
-import time
 from hx711 import HX711
 
 
@@ -13,8 +12,9 @@ class Scale:
         self.sleep = sleep
         self.history = []
 
-    def get_weight(self):
-        value = self.source.get_weight()
+    def getMeasure(self):
+        """Useful for continuous measurements."""
+        value = self.source.getWeight()
         self.history.append(value)
 
         # cut to old values
@@ -34,23 +34,28 @@ class Scale:
 
         avg = statistics.mean(valid_values)
 
-        time.sleep(self.sleep)
         return avg
+
+    def getWeight(self, samples=None):
+        """Get weight for one time. It clears history."""
+        self.history = []
+        [self.getMeasure() for i in range(samples or self.samples)]
+        return self.getMeasure()
 
     def tare(self, times=25):
         self.source.tare(times)
 
-    def set_offset(self, offset):
-        self.source.set_offset(offset)
+    def setOffset(self, offset):
+        self.source.setOffset(offset)
 
-    def set_reference_unit(self, reference_unit):
-        self.source.set_reference_unit(reference_unit)
+    def setReferenceUnit(self, reference_unit):
+        self.source.setReferenceUnit(reference_unit)
 
-    def power_down(self):
-        self.source.power_down()
+    def powerDown(self):
+        self.source.powerDown()
 
-    def power_up(self):
-        self.source.power_up()
+    def powerUp(self):
+        self.source.powerUp()
 
     def reset(self):
         self.source.reset()
