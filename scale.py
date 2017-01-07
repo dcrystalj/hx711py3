@@ -12,11 +12,13 @@ class Scale:
         self.sleep = sleep
         self.history = []
 
-    def getMeasure(self):
-        """Useful for continuous measurements."""
+    def newMeasure(self):
         value = self.source.getWeight()
         self.history.append(value)
 
+    def getMeasure(self):
+        """Useful for continuous measurements."""
+        self.newMeasure()
         # cut to old values
         self.history = self.history[-self.samples:]
 
@@ -37,9 +39,11 @@ class Scale:
         return avg
 
     def getWeight(self, samples=None):
-        """Get weight for one time. It clears history."""
+        """Get weight for once in a while. It clears history first."""
         self.history = []
-        [self.getMeasure() for i in range(samples or self.samples)]
+
+        [self.newMeasure() for i in range(samples or self.samples)]
+
         return self.getMeasure()
 
     def tare(self, times=25):
